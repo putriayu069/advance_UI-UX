@@ -1,25 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.blue,
-      ),
-      home: const FormPage(),
-    );
-  }
-}
-
 class FormPage extends StatefulWidget {
   const FormPage({super.key});
 
@@ -29,6 +9,7 @@ class FormPage extends StatefulWidget {
 
 class _FormPageState extends State<FormPage> {
   final formKey = GlobalKey<FormState>();
+
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -63,7 +44,7 @@ class _FormPageState extends State<FormPage> {
     if (formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Form valid'),
+          content: Text('Data berhasil disimpan'),
         ),
       );
     }
@@ -80,43 +61,79 @@ class _FormPageState extends State<FormPage> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            const Icon(
+              Icons.person_add_alt_1,
+              size: 60,
+            ),
+
+            const SizedBox(height: 12),
+
+            Text(
+              'Buat Data Pengguna',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              'Silakan isi data berikut dengan lengkap.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+
+            const SizedBox(height: 28),
+
+            // Nama
             TextFormField(
               controller: nameController,
               decoration: const InputDecoration(
                 labelText: 'Nama',
+                hintText: 'Masukkan nama lengkap',
                 prefixIcon: Icon(Icons.person),
                 border: OutlineInputBorder(),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) {
+                if (value == null || value.trim().isEmpty) {
                   return 'Nama wajib diisi';
                 }
                 return null;
               },
             ),
+
             const SizedBox(height: 16),
+
+            // Email
             TextFormField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
                 labelText: 'Email',
+                hintText: 'contoh@email.com',
                 prefixIcon: Icon(Icons.email),
                 border: OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null ||
+                    value.isEmpty ||
                     !value.contains('@')) {
                   return 'Email tidak valid';
                 }
                 return null;
               },
             ),
+
             const SizedBox(height: 16),
+
+            // Password
             TextFormField(
               controller: passwordController,
               obscureText: obscurePassword,
               decoration: InputDecoration(
                 labelText: 'Password',
+                hintText: 'Minimal 6 karakter',
                 prefixIcon: const Icon(Icons.lock),
                 suffixIcon: IconButton(
                   onPressed: () {
@@ -134,25 +151,38 @@ class _FormPageState extends State<FormPage> {
               ),
               validator: (value) {
                 if (value == null || value.length < 6) {
-                  return 'Minimal 6 karakter';
+                  return 'Password minimal 6 karakter';
                 }
                 return null;
               },
             ),
+
             const SizedBox(height: 16),
+
+            // Tanggal lahir
             OutlinedButton.icon(
               onPressed: selectDate,
               icon: const Icon(Icons.calendar_month),
               label: Text(
                 birthDate == null
                     ? 'Pilih tanggal lahir'
-                    : '${birthDate!.day}/${birthDate!.month}/${birthDate!.year}',
+                    : 'Tanggal lahir: '
+                        '${birthDate!.day}/'
+                        '${birthDate!.month}/'
+                        '${birthDate!.year}',
               ),
             ),
+
             const SizedBox(height: 24),
-            FilledButton(
-              onPressed: submit,
-              child: const Text('Submit'),
+
+            // Submit
+            SizedBox(
+              height: 50,
+              child: FilledButton.icon(
+                onPressed: submit,
+                icon: const Icon(Icons.check),
+                label: const Text('Simpan Data'),
+              ),
             ),
           ],
         ),

@@ -1,47 +1,292 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
-      ),
-      home: const PainterPage(),
-    );
-  }
-}
-
-class PainterPage extends StatelessWidget {
+class PainterPage extends StatefulWidget {
   const PainterPage({super.key});
 
   @override
+  State<PainterPage> createState() => _PainterPageState();
+}
+
+class _PainterPageState extends State<PainterPage>
+    with SingleTickerProviderStateMixin {
+  double progress = 75;
+  Color selectedColor = Colors.indigo;
+
+  late AnimationController animationController;
+  late Animation<double> animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+
+    animation = Tween<double>(
+      begin: 0,
+      end: progress,
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    animationController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    animationController.dispose();
+    super.dispose();
+  }
+
+  void startAnimation() {
+    animation = Tween<double>(
+      begin: 0,
+      end: progress,
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    animationController
+      ..reset()
+      ..forward();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final displayedProgress =
+        animationController.isAnimating
+            ? animation.value
+            : progress;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('CustomPainter'),
+        centerTitle: true,
       ),
-      body: Center(
-        child: CustomPaint(
-          size: const Size(300, 300),
-          painter: CirclePainter(),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+
+            Text(
+              'Custom Drawing',
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+
+            const SizedBox(height: 8),
+
+            const Text(
+              'Atur nilai dan warna gambar menggunakan CustomPainter',
+              textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 25),
+
+            // AREA CUSTOM PAINTER
+            Container(
+              width: 320,
+              height: 320,
+              decoration: BoxDecoration(
+                color: selectedColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Center(
+                child: CustomPaint(
+                  size: const Size(280, 280),
+                  painter: CirclePainter(
+                    progress: displayedProgress,
+                    color: selectedColor,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            // NILAI PROGRESS
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Progress',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${progress.toInt()}%',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: selectedColor,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    Slider(
+                      min: 0,
+                      max: 100,
+                      value: progress,
+                      activeColor: selectedColor,
+                      onChanged: (value) {
+                        setState(() {
+                          progress = value;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // PILIH WARNA
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Warna Progress',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _colorButton(Colors.indigo),
+                        _colorButton(Colors.green),
+                        _colorButton(Colors.orange),
+                        _colorButton(Colors.pink),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // TOMBOL ANIMASI
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: animationController.isAnimating
+                            ? null
+                            : startAnimation,
+                        icon: const Icon(Icons.play_arrow),
+                        label: const Text(
+                          'Jalankan Animasi',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // PENJELASAN
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.brush,
+                      size: 40,
+                      color: selectedColor,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'CustomPainter',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Gambar progress dibuat secara manual '
+                      'menggunakan Canvas melalui CustomPainter.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _colorButton(Color color) {
+    final isSelected = selectedColor == color;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedColor = color;
+        });
+      },
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: isSelected
+              ? Border.all(
+                  color: Colors.black,
+                  width: 3,
+                )
+              : null,
+        ),
+        child: isSelected
+            ? const Icon(
+                Icons.check,
+                color: Colors.white,
+              )
+            : null,
       ),
     );
   }
 }
 
 class CirclePainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  const CirclePainter({
+    required this.progress,
+    required this.color,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(
@@ -49,16 +294,13 @@ class CirclePainter extends CustomPainter {
       size.height / 2,
     );
 
-    final radius = size.width / 2 - 20;
+    final radius = size.width / 2 - 25;
 
+    // Background lingkaran
     final backgroundPaint = Paint()
-      ..style = PaintingStyle.fill
-      ..color = Colors.indigo.shade100;
-
-    final circlePaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 12
-      ..color = Colors.indigo;
+      ..strokeWidth = 16
+      ..color = color.withValues(alpha: 0.15);
 
     canvas.drawCircle(
       center,
@@ -66,24 +308,35 @@ class CirclePainter extends CustomPainter {
       backgroundPaint,
     );
 
+    // Progress
+    final progressPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 16
+      ..strokeCap = StrokeCap.round
+      ..color = color;
+
+    final sweepAngle =
+        2 * math.pi * (progress / 100);
+
     canvas.drawArc(
       Rect.fromCircle(
         center: center,
         radius: radius,
       ),
       -math.pi / 2,
-      math.pi * 1.5,
+      sweepAngle,
       false,
-      circlePaint,
+      progressPaint,
     );
 
+    // Tulisan persentase
     final textPainter = TextPainter(
-      text: const TextSpan(
-        text: '75%',
+      text: TextSpan(
+        text: '${progress.toInt()}%',
         style: TextStyle(
-          fontSize: 42,
+          fontSize: 46,
           fontWeight: FontWeight.bold,
-          color: Colors.indigo,
+          color: color,
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -102,8 +355,9 @@ class CirclePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(
-    covariant CustomPainter oldDelegate,
+    covariant CirclePainter oldDelegate,
   ) {
-    return false;
+    return oldDelegate.progress != progress ||
+        oldDelegate.color != color;
   }
 }
